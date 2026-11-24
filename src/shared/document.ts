@@ -32,6 +32,8 @@ export interface Take extends TimeRange {
   createdAt: number
   audio: Blob
   pitch: PitchPoint[]
+  /** 录制时歌曲确认的练习调（相对原调的半音偏移）。旧录音没有此字段，按原调显示。 */
+  keyOffset?: number
 }
 
 export interface PcmFrame {

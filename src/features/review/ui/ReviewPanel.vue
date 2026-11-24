@@ -1,12 +1,18 @@
 <script setup lang="ts">
 import { AudioLines, GitCompareArrows, Headphones, Play, Square } from '@lucide/vue'
 import type { GuideNote, LyricLine, Take } from '../../../shared/document'
+import { offsetLabel, transposeNotes } from '../../../shared/notes'
 import { clockLabel } from '../../../shared/time'
 import { accuracy } from '../lib/summary'
 
-defineProps<{ takes: Take[]; slots: (Take | undefined)[]; activeId: string | null; selected: LyricLine | null; notes: GuideNote[]; issue: string }>()
+const props = defineProps<{ takes: Take[]; slots: (Take | undefined)[]; activeId: string | null; selected: LyricLine | null; notes: GuideNote[]; issue: string }>()
 const emit = defineEmits<{ listen: [Take]; choose: [0 | 1, string] }>()
 const slotIndices = [0, 1] as const
+
+/** 每条录音按它录制时的调评分，不受当前确认的练习调影响。 */
+function score(take: Take) {
+  return accuracy(take, transposeNotes(props.notes, take.keyOffset ?? 0))
+}
 </script>
 
 <template>
@@ -21,8 +27,9 @@ const slotIndices = [0, 1] as const
           <Square v-if="activeId === take.id" :size="13" fill="currentColor" /><Play v-else :size="13" fill="currentColor" />
         </button>
         <div class="take-info"><strong>录音 {{ takes.length - index }}</strong>
-          <small class="mono">{{ clockLabel(take.start, true) }}–{{ clockLabel(take.end, true) }}</small></div>
-        <span class="mono take-score" title="检测到的音高中命中参考音的占比">{{ accuracy(take, notes) ?? '—' }}<template v-if="accuracy(take, notes) !== null">%</template></span>
+          <small class="mono">{{ clockLabel(take.start, true) }}–{{ clockLabel(take.end, true) }}</small>
+          <small class="take-key mono" title="录制这条录音时确认的练习调">调 {{ offsetLabel(take.keyOffset) }}</small></div>
+        <span class="mono take-score" title="检测到的音高中命中参考音的占比（按录制时的调）">{{ score(take) ?? '—' }}<template v-if="score(take) !== null">%</template></span>
       </li>
     </ol>
     <div v-if="takes.length" class="compare-tools">

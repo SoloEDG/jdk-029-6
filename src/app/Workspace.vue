@@ -5,11 +5,13 @@ import { LyricStage, PhraseList } from '../features/lyrics'
 import { RecordControls } from '../features/capture'
 import { PitchPanel } from '../features/pitch'
 import { ReviewPanel } from '../features/review'
+import { KeyfindPanel } from '../features/keyfind'
 import { useWorkspace } from './useWorkspace'
 
 const {
-  transport, lyrics, pitch, review, capture, graphRange, graphPosition,
+  transport, lyrics, pitch, review, capture, keyfind, guideNotes, graphRange, graphPosition,
   selectLine, adjacent, selectSong, seek, toggleLoop, togglePlay, toggleRecording, listen,
+  audition, submitEvidence,
 } = useWorkspace()
 </script>
 
@@ -27,9 +29,14 @@ const {
     </aside>
     <div class="workbench">
       <SongHeading :song="transport.song.value" />
+      <KeyfindPanel :song="transport.song.value" :profile="keyfind.profile.value" :evidence="keyfind.evidence.value"
+        :outcome="keyfind.outcome.value" :report="keyfind.report.value" :confirmed-offset="keyfind.confirmedOffset.value"
+        :takes="review.visible.value" :auditioning="keyfind.auditioning.value"
+        @audition="audition" @confirm="keyfind.confirmKey" @clear="keyfind.clearKey"
+        @evidence="submitEvidence" @remove-evidence="keyfind.removeEvidence" />
       <LyricStage :selected="lyrics.selected.value" :active="lyrics.active.value" :upcoming="lyrics.upcoming.value"
         :playing="transport.isPlaying.value" :progress="lyrics.lineProgress.value" />
-      <PitchPanel :notes="transport.song.value.notes" :position="graphPosition" :range="graphRange"
+      <PitchPanel :notes="guideNotes" :position="graphPosition" :range="graphRange"
         :latest="capture.status.value === 'recording' ? pitch.latest.value : null"
         :live="capture.status.value === 'recording' ? pitch.points.value : []"
         :take-a="review.slots.value[0]?.pitch ?? []" :take-b="review.slots.value[1]?.pitch ?? []" />
